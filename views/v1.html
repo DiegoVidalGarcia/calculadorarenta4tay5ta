@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resultados de Cálculo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        .result {
+            font-weight: bold;
+            color: #007BFF;
+        }
+
+
+        button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+      width: 100%;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    </style>
+</head>
+<body>
+    <h1>Resultados del Cálculo</h1>
+    
+    <div class="container">
+        <h2>Resumen de Cálculo</h2>
+        <p><strong>Renta Neta de Trabajo:</strong> <span id="E13"></span></p>
+        <p><strong>Renta Imponible de Trabajo:</strong> <span id="E15"></span></p>
+
+        <h2>Tabla de Impuesto a la Renta</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tramos</th>
+                    <th>Tasa</th>
+                    <th>Monto Afecto</th>
+                    <th>Impuesto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Hasta 5 UIT (S/. 26,750.00)</td>
+                    <td>8%</td>
+                    <td><span id="tramo1"></span></td>
+                    <td><span id="impuesto1"></span></td>
+                </tr>
+                <tr>
+                    <td>Exceso de 5 UIT hasta 20 UIT (S/. 107,000.00)</td>
+                    <td>14%</td>
+                    <td><span id="tramo2"></span></td>
+                    <td><span id="impuesto2"></span></td>
+                </tr>
+                <tr>
+                    <td>Exceso de 20 UIT hasta 35 UIT (S/. 187,250.00)</td>
+                    <td>17%</td>
+                    <td><span id="tramo3"></span></td>
+                    <td><span id="impuesto3"></span></td>
+                </tr>
+                <tr>
+                    <td>Exceso de 35 UIT hasta 45 UIT (S/. 240,750.00)</td>
+                    <td>20%</td>
+                    <td><span id="tramo4"></span></td>
+                    <td><span id="impuesto4"></span></td>
+                </tr>
+                <tr>
+                    <td>Exceso de 45 UIT (S/. 240,750.00)</td>
+                    <td>30%</td>
+                    <td><span id="tramo5"></span></td>
+                    <td><span id="impuesto5"></span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Total Impuesto a la Renta</h2>
+        <p class="result">S/. <span id="totalImpuesto"></span></p>
+
+        <div class="button-container">
+          <button class="btn" onclick="redirigir()">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        // Obtener valores desde la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const E13 = parseFloat(urlParams.get('E13')) || 0;  // Renta neta de trabajo
+        const E15 = parseFloat(urlParams.get('E15')) || 0;  // Renta imponible de trabajo
+
+        // Mostrar valores generales
+        document.getElementById("E13").textContent = E13.toFixed(2);
+        document.getElementById("E15").textContent = E15.toFixed(2);
+
+        // Definir los tramos de la UIT
+        const UIT = 5350; // Valor actualizado de la UIT
+        const tramo1_limite = 5 * UIT;
+        const tramo2_limite = 20 * UIT;
+        const tramo3_limite = 35 * UIT;
+        const tramo4_limite = 45 * UIT;
+
+        let impuestoTotal = 0;
+
+        // Calcular impuestos por tramos
+        function calcularImpuesto(monto, limite, tasa) {
+            if (monto > limite) {
+                return (limite * tasa);
+            } else {
+                return (monto * tasa);
+            }
+        }
+
+        let tramo1 = Math.min(E15, tramo1_limite);
+        let impuesto1 = calcularImpuesto(tramo1, tramo1_limite, 0.08);
+        
+        let tramo2 = Math.min(E15 - tramo1, tramo2_limite - tramo1_limite);
+        let impuesto2 = calcularImpuesto(tramo2, tramo2_limite - tramo1_limite, 0.14);
+
+        let tramo3 = Math.min(E15 - tramo1 - tramo2, tramo3_limite - tramo2_limite);
+        let impuesto3 = calcularImpuesto(tramo3, tramo3_limite - tramo2_limite, 0.17);
+
+        let tramo4 = Math.min(E15 - tramo1 - tramo2 - tramo3, tramo4_limite - tramo3_limite);
+        let impuesto4 = calcularImpuesto(tramo4, tramo4_limite - tramo3_limite, 0.20);
+
+        let tramo5 = Math.max(E15 - tramo1 - tramo2 - tramo3 - tramo4, 0);
+        let impuesto5 = tramo5 * 0.30;
+
+        // Sumar total de impuestos
+        impuestoTotal = impuesto1 + impuesto2 + impuesto3 + impuesto4 + impuesto5;
+
+        // Mostrar resultados en la tabla
+        document.getElementById("tramo1").textContent = tramo1.toFixed(2);
+        document.getElementById("impuesto1").textContent = impuesto1.toFixed(2);
+
+        document.getElementById("tramo2").textContent = tramo2.toFixed(2);
+        document.getElementById("impuesto2").textContent = impuesto2.toFixed(2);
+
+        document.getElementById("tramo3").textContent = tramo3.toFixed(2);
+        document.getElementById("impuesto3").textContent = impuesto3.toFixed(2);
+
+        document.getElementById("tramo4").textContent = tramo4.toFixed(2);
+        document.getElementById("impuesto4").textContent = impuesto4.toFixed(2);
+
+        document.getElementById("tramo5").textContent = tramo5.toFixed(2);
+        document.getElementById("impuesto5").textContent = impuesto5.toFixed(2);
+
+        // Mostrar el impuesto total
+        document.getElementById("totalImpuesto").textContent = impuestoTotal.toFixed(2);
+
+        function redirigir() {
+          window.location.href = `v2.html?E15=${E15}&totalImpuesto=${impuestoTotal.toFixed(2)}`;
+        }
+
+
+    </script>
+</body>
+</html>
